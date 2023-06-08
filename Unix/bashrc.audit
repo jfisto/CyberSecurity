@@ -1,0 +1,98 @@
+#    THIS CONFIGURATION FILE IS USED TO CONFIGURE BASH COMMAND AUDITING
+
+
+if [ "${SHELL##*/}" != "bash" ]; then
+  return
+fi
+
+#to avoid sourcing this file more than once
+if [ "$AUDIT_INCLUDED" == "$$" ] || { [ -z "$SSH_ORIGINAL_COMMAND" ] && [ "$(tr '\0' ' ' < /proc/$$/cmdline)" == 'bash-c"/etc/forcecommand.sh"' ]; }; then
+  return
+else
+  declare -rx AUDIT_INCLUDED="$$"
+fi
+ 
+# CUSTOM time format (not stabl)
+
+# declare -rx HISTCONTROL=""
+declare -rx HISTIGNORE=""
+declare -rx HISTCMD
+declare -rx AUDIT_LOGINUSER="$(who -mu | awk '{print $1}')"
+declare -rx AUDIT_LOGINPID="$(who -mu | awk '{print $6}')"
+declare -rx AUDIT_USER="$USER"
+declare -rx AUDIT_PID="$$"
+declare -rx AUDIT_TTY="$(who -mu | awk '{print $2}')"
+declare -rx AUDIT_SSH="$([ -n "$SSH_CONNECTION" ] && echo "$SSH_CONNECTION" | awk '{print $1":"$2"->"$3":"$4}')"
+declare -rx REMOTEIP=$(who am i | awk '{print $5}' | sed "s/[()]//g" )
+if [ -n "$MC_SID" ]; then declare -rx MC_PID=$(ps -p `ps -p $MC_SID -o ppid=` -o ppid=)
+fi
+declare -rx AUDIT_STR="[Command Audit] [SR=$REMOTEIP] [SUSER=$AUDIT_LOGINUSER/$AUDIT_LOGINPID] [AUSER=$AUDIT_USER/$AUDIT_PID] [SUDO_USER=$SUDO_USER] [MC_PID=$MC_PID] [TTY=$AUDIT_TTY/$AUDIT_SSH]"
+set +o functrace
+
+shopt -s nullglob
+shopt -s extglob
+shopt -s histappend
+shopt -s cmdhist
+shopt -s histverify
+
+#enable forward search ('ctrl-s')
+if shopt -q login_shell && [ -t 0 ]; then
+  stty -ixon
+fi
+
+
+# Function writen command to log file
+function audit_DEBUG() {
+  if [ -z "$AUDIT_LASTHISTLINE" ]; then
+    local AUDIT_CMD="$(history 2 | head -n 1)"
+    AUDIT_LASTHISTLINE=$(echo "$AUDIT_CMD" | awk '{print $1}')
+  else
+    AUDIT_LASTHISTLINE="$AUDIT_HISTLINE"
+  fi
+  local AUDIT_CMD="$(history 1)"
+  AUDIT_HISTLINE=$(echo "$AUDIT_CMD" | awk '{print $1}')
+
+
+  if [ "${AUDIT_HISTLINE:-0}" -ne "${AUDIT_LASTHISTLINE:-0}" ] || [ "${AUDIT_HISTLINE:-0}" -eq "1" ]; then
+    echo -ne "${_backnone}${_frontgrey}"
+    check_format "$AUDIT_CMD"
+  else
+    return 1
+  fi
+}
+
+
+function check_format() {
+  local AUDIT_CMD="$1"
+  if echo "$AUDIT_CMD" | grep -Eq '^\s*[0-9]{1,}\s*([0-9]{1,}.[0-9]{1,}.[0-9]{1,}|[0-9]{1,}.[0-9]{1,}|[0-9]{1,})\s+([0-9]{1,}.[0-9]{1,}.[0-9]{1,}|[0-9]{1,}.[0-9]{1,}|[0-9]{1,})\s+(.*)'; then
+    # AUDIT_DATE=$(echo "$AUDIT_CMD" | awk '{print $2}')
+    # AUDIT_TIME=$(echo "$AUDIT_CMD" | awk '{print $3}')
+    #if ! logger -p  local3.debug -t "$AUDIT_STR "[COMMAND="$PWD" "${AUDIT_CMD##*[0-9]}] "[ORIGINAL_TIME="$AUDIT_DATE $AUDIT_TIME]"; then
+      #echo "error $AUDIT_STR "[COMMAND="$PWD" "${AUDIT_CMD##*[0-9]}] "[ORIGINAL_TIME="$AUDIT_DATE $AUDIT_TIME]"
+    #fi
+    AUDIT_CMD=$(echo "$AUDIT_CMD" | awk '{for(i=4;i<=NF;i++) printf "%s ",$i}')
+    if ! logger -p  local3.debug -t "$AUDIT_STR "[COMMAND="$PWD" "$AUDIT_CMD]"; then
+      echo "error $AUDIT_STR "[COMMAND="$PWD" "$AUDIT_CMD]"
+    fi
+    
+  else
+    if ! logger -p  local3.debug -t "$AUDIT_STR "[COMMAND="$PWD" "${AUDIT_CMD##*( )?(+([0-9])[^0-9])*( )}""]"; then
+      echo "error $AUDIT_STR "[COMMAND="$PWD" "${AUDIT_CMD##*( )?(+([0-9])[^0-9])*( )}""]"
+    fi
+  fi
+}
+
+function audit_EXIT() {
+  local AUDIT_STATUS="$?"
+  logger -p local3.debug -t "$AUDIT_STR" "#=== bash session ended. ==="
+  exit "$AUDIT_STATUS"
+}
+
+declare -frx +t audit_DEBUG
+declare -frx +t audit_EXIT
+
+logger -p local3.debug -t "$AUDIT_STR" "#=== New bash session started. ==="
+declare -x PROMPT_COMMAND="trap 'audit_DEBUG; trap DEBUG' DEBUG"
+declare -rx BASH_COMMAND
+declare -rx SHELLOPT
+trap audit_EXIT EXIT

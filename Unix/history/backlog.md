@@ -23,8 +23,8 @@ if [ "$AUDIT_INCLUDED" == "$$" ] || { [ -z "$SSH_ORIGINAL_COMMAND" ] && [ "$(cat
 
 *Ниже представлен код отвечающий за обработку пользовательских команд и определение последенй введенной и предпоследней команд:*
   
-#if [ -z "$AUDIT_LASTHISTLINE" ]; then#
-  #local AUDIT_CMD="$(fc -l -1 -1)"#
+if [ -z "$AUDIT_LASTHISTLINE" ]; then\n
+  local AUDIT_CMD="$(fc -l -1 -1)"
   AUDIT_LASTHISTLINE="${AUDIT_CMD%%+([^ 0-9])*}"
 else
   AUDIT_LASTHISTLINE="$AUDIT_HISTLINE"

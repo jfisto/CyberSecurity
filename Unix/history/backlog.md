@@ -53,9 +53,6 @@ fi
 local AUDIT_CMD="$(history 1)"
 AUDIT_HISTLINE=$(echo "$AUDIT_CMD" | awk '{print $1}')
 ```
-
-![Исправление ошибки игнорирования нулевого байта](https://github.com/jfisto/CyberSecurity/edit/main/Unix/history/2.png)
-
 ### *Разработка и оптимизация проверки установленного формата времени при логировании команд в history*
 
 

@@ -46,13 +46,13 @@ fi
   
 *Таким образом, фрагмент кода должен выглядить следующим образом:*
 ```
-  if [ -z "$AUDIT_LASTHISTLINE" ]; then\
-  \tlocal AUDIT_CMD="$(history 2 | head -n 1)"\
-  \tAUDIT_LASTHISTLINE=$(echo "$AUDIT_CMD" | awk '{print $1}')\
-else\
-  \tAUDIT_LASTHISTLINE="$AUDIT_HISTLINE"\
-fi\
-local AUDIT_CMD="$(history 1)"\
+if [ -z "$AUDIT_LASTHISTLINE" ]; then
+  local AUDIT_CMD="$(history 2 | head -n 1)"
+  AUDIT_LASTHISTLINE=$(echo "$AUDIT_CMD" | awk '{print $1}')
+else
+  AUDIT_LASTHISTLINE="$AUDIT_HISTLINE"
+fi
+local AUDIT_CMD="$(history 1)"
 AUDIT_HISTLINE=$(echo "$AUDIT_CMD" | awk '{print $1}')
 ```
 

@@ -98,42 +98,7 @@ fi
 ___
 ### *Рефакторинг уже имеющегося кода и кода с учетом добавленных нововведений*
 
-  
-```
-function audit_DEBUG() {
-  if [ -z "$AUDIT_LASTHISTLINE" ]; then
-    local AUDIT_CMD="$(history 2 | head -n 1)"
-    AUDIT_LASTHISTLINE=$(echo "$AUDIT_CMD" | awk '{print $1}')
-  else
-    AUDIT_LASTHISTLINE="$AUDIT_HISTLINE"
-  fi
-  local AUDIT_CMD="$(history 1)"
-  AUDIT_HISTLINE=$(echo "$AUDIT_CMD" | awk '{print $1}')
-
-  if [ "${AUDIT_HISTLINE:-0}" -ne "${AUDIT_LASTHISTLINE:-0}" ] || [ "${AUDIT_HISTLINE:-0}" -eq "1" ]; then
-    echo -ne "${_backnone}${_frontgrey}"
-    check_format "$AUDIT_CMD"
-  else
-    return 1
-  fi
-}
-
-
-function check_format() {
-  local AUDIT_CMD="$1"
-  if echo "$AUDIT_CMD" | grep -Eq '^\s*[0-9]{1,}\s*([0-9]{1,}.[0-9]{1,}.[0-9]{1,}|[0-9]{1,}.[0-9]{1,}|[0-9]{1,})\s+([0-9]{1,}.[0-9]{1,}.[0-9]{1,}|[0-9]{1,}.[0-9]{1,}|[0-9]{1,})\s+(.*)'; then
-    AUDIT_CMD=$(echo "$AUDIT_CMD" | awk '{for(i=4;i<=NF;i++) printf "%s ",$i}')
-    if ! logger -p  local3.debug -t "$AUDIT_STR "[COMMAND="$PWD" "$AUDIT_CMD]"; then
-      echo "error $AUDIT_STR "[COMMAND="$PWD" "$AUDIT_CMD]"
-    fi
-    
-  else
-    if ! logger -p  local3.debug -t "$AUDIT_STR "[COMMAND="$PWD" "${AUDIT_CMD##*( )?(+([0-9])[^0-9])*( )}""]"; then
-      echo "error $AUDIT_STR "[COMMAND="$PWD" "${AUDIT_CMD##*( )?(+([0-9])[^0-9])*( )}""]"
-    fi
-  fi
-}
-```
+## В конфиге bashrc.audit
 
 
 ![Исправление ошибки игнорирования нулевого байта](3.png)

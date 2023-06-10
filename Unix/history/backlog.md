@@ -32,7 +32,7 @@ else\
   AUDIT_LASTHISTLINE="$AUDIT_HISTLINE"\
 fi\
   local AUDIT_CMD="$(history 1)"\
-  AUDIT_HISTLINE="${AUDIT_CMD%%+([^ 0-9])*}"\
+  AUDIT_HISTLINE="${AUDIT_CMD%%+([^ 0-9])*}"
 
 *В данном коде в переменную AUDIT_CMD записывается последняя введенная пользователем команда. Отметим, что учитывая использование утилиты fc с параметрами -l -1 -1, то в переменную AUDIT_CMD записывается предпоследняя команда, в отличии от использования утилиты history 1, которая выводит последнюю команду (то есть саму себя "history 1").*
 *К сожалению я не нашел разумного описания использования утилиты fc для вывода последней команды с выводом времени (тк ключ -t работает не для всех Unix-подобных операционных систем)*
@@ -50,7 +50,7 @@ fi\
     #AUDIT_LASTHISTLINE="$AUDIT_HISTLINE"\
   #fi\
   #local AUDIT_CMD="$(history 1)"\
-  #AUDIT_HISTLINE=$(echo "$AUDIT_CMD" | awk '{print $1}')\
+  #AUDIT_HISTLINE=$(echo "$AUDIT_CMD" | awk '{print $1}')
 
 
 ![Исправление ошибки игнорирования нулевого байта](https://github.com/jfisto/CyberSecurity/edit/main/Unix/history/2.png)

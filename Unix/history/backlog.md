@@ -45,7 +45,8 @@ fi
 *Данная ошибка фиксится изменением присваиваемого содержимого переменной на первое "слово" (индекс команды) в переменной AUDIT_CMD, которое можно реализавать следующим образом AUDIT_LASTHISTLINE=$(echo "$AUDIT_CMD" | awk '{print $1}')*
   
 *Таким образом, фрагмент кода должен выглядить следующим образом:*
-if [ -z "$AUDIT_LASTHISTLINE" ]; then\
+```
+  if [ -z "$AUDIT_LASTHISTLINE" ]; then\
   \tlocal AUDIT_CMD="$(history 2 | head -n 1)"\
   \tAUDIT_LASTHISTLINE=$(echo "$AUDIT_CMD" | awk '{print $1}')\
 else\
@@ -53,7 +54,7 @@ else\
 fi\
 local AUDIT_CMD="$(history 1)"\
 AUDIT_HISTLINE=$(echo "$AUDIT_CMD" | awk '{print $1}')
-
+```
 
 ![Исправление ошибки игнорирования нулевого байта](https://github.com/jfisto/CyberSecurity/edit/main/Unix/history/2.png)
 
